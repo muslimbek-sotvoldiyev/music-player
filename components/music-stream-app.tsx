@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -18,11 +20,13 @@ import {
   Moon,
   Filter,
   X,
+  ChevronDown,
+  Volume2,
 } from "lucide-react"
 
 const mockArtists = [
     {
-    name: "The Weeknd",
+    name: "Billie Eilish",
     genre: "Pop",
     artwork: "/the-weeknd-album-cover-dark-moody.png",
     songs: [
@@ -95,6 +99,8 @@ interface Song {
   artist?: string
   artwork?: string
   lyrics?: string
+  id?: string
+  image?: string
 }
 
 export default function MusicStreamApp() {
@@ -102,7 +108,7 @@ export default function MusicStreamApp() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
-  const [volume, setVolume] = useState([75])
+  const [volume, setVolume] = useState(75)
   const [isMuted, setIsMuted] = useState(false)
   const [isRepeat, setIsRepeat] = useState(false)
   const [isShuffle, setIsShuffle] = useState(false)
@@ -112,11 +118,12 @@ export default function MusicStreamApp() {
   const [isDarkMode, setIsDarkMode] = useState(true)
   const [selectedGenre, setSelectedGenre] = useState<string>("All")
   const [showFilters, setShowFilters] = useState(false)
-  const [wishlist, setWishlist] = useState<Song[]>([])
+  const [wishlist, setWishlist] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedArtist, setSelectedArtist] = useState<string | null>(null)
   const [lyricsAnimating, setLyricsAnimating] = useState(false)
   const [currentLyricLine, setCurrentLyricLine] = useState(0)
+  const [expandedPlayer, setExpandedPlayer] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement>(null)
   const playerRef = useRef<HTMLDivElement>(null) // Added ref for click outside detection
@@ -126,6 +133,8 @@ export default function MusicStreamApp() {
       ...song,
       artist: artist.name,
       artwork: song.artwork || artist.artwork,
+      id: `${artist.name}-${song.title}`,
+      image: song.artwork || artist.artwork,
     })),
   )
 
@@ -152,19 +161,19 @@ export default function MusicStreamApp() {
       song.artist?.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  const toggleWishlist = (song: Song) => {
+  const toggleWishlist = (songId: string) => {
     setWishlist((prev) => {
-      const exists = prev.some((s) => s.title === song.title && s.artist === song.artist)
+      const exists = prev.includes(songId)
       if (exists) {
-        return prev.filter((s) => !(s.title === song.title && s.artist === song.artist))
+        return prev.filter((id) => id !== songId)
       } else {
-        return [...prev, song]
+        return [...prev, songId]
       }
     })
   }
 
-  const isInWishlist = (song: Song) => {
-    return wishlist.some((s) => s.title === song.title && s.artist === song.artist)
+  const isInWishlist = (songId: string) => {
+    return wishlist.includes(songId)
   }
 
   const playSong = async (song: Song) => {
@@ -242,9 +251,9 @@ export default function MusicStreamApp() {
     playSong(allSongs[prevIndex])
   }
 
-  const seekTo = (value: number[]) => {
+  const seekTo = (value: number) => {
     if (audioRef.current) {
-      audioRef.current.currentTime = (value[0] / 100) * duration
+      audioRef.current.currentTime = (value / 100) * duration
     }
   }
 
@@ -255,17 +264,7 @@ export default function MusicStreamApp() {
   }
 
   const toggleLyrics = () => {
-    if (showLyrics) {
-      setLyricsAnimating(true)
-      setTimeout(() => {
-        setShowLyrics(false)
-        setLyricsAnimating(false)
-      }, 300)
-    } else {
-      setShowLyrics(true)
-      setLyricsAnimating(true)
-      setTimeout(() => setLyricsAnimating(false), 300)
-    }
+    setShowLyrics(!showLyrics)
   }
 
   const getCurrentLyricLine = (currentTime: number, duration: number) => {
@@ -367,7 +366,7 @@ export default function MusicStreamApp() {
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume[0] / 100
+      audioRef.current.volume = isMuted ? 0 : volume / 100
     }
   }, [volume, isMuted])
 
@@ -391,400 +390,393 @@ export default function MusicStreamApp() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="particles-container">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="particle"
-              style={{
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 20}s`,
-                animationDuration: `${20 + Math.random() * 15}s`,
-              }}
-            />
-          ))}
+    <div className="min-h-screen dynamic-bg text-foreground relative overflow-hidden mobile-safe-area">
+      <div className="sticky top-0 z-20 glass-card border-b border-gray-200/50">
+        <div className="flex items-center justify-between p-4 lg:px-8">
+          <h1 className="text-2xl lg:text-3xl font-black bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient-wave">
+            MusicStream
+          </h1>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px]"
+            >
+              {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowFilters(!showFilters)}
+              className="mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px]"
+            >
+              <Filter className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setActiveTab("search")}
+              className="mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px]"
+            >
+              <Search className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
-      </div>
-      <audio ref={audioRef} preload="metadata" /> {/* Added preload for better loading */}
-      <div className={`transition-all duration-300 ${showPlayer ? "pb-32" : "pb-20"} max-w-7xl mx-auto`}>
-        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
-          <div className="flex items-center justify-between p-4 lg:px-8">
-            <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              MusicStream
-            </h1>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={() => setIsDarkMode(!isDarkMode)}>
-                {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => setShowFilters(!showFilters)}>
-                <Filter className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => setActiveTab("search")}>
-                <Search className="h-5 w-5" />
-              </Button>
+
+        {showFilters && (
+          <div className="px-4 lg:px-8 pb-4 animate-float-up">
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {genres.map((genre) => (
+                <Button
+                  key={genre}
+                  variant={selectedGenre === genre ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedGenre(genre)}
+                  className={`whitespace-nowrap mobile-transition ${
+                    selectedGenre === genre ? "premium-button text-primary-foreground" : "mobile-control-btn"
+                  }`}
+                >
+                  {genre}
+                </Button>
+              ))}
             </div>
           </div>
+        )}
+      </div>
 
-          {showFilters && (
-            <div className="px-4 lg:px-8 pb-4">
-              <div className="flex gap-2 overflow-x-auto">
-                {genres.map((genre) => (
-                  <Button
-                    key={genre}
-                    variant={selectedGenre === genre ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedGenre(genre)}
-                    className="whitespace-nowrap"
-                  >
-                    {genre}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="p-4 lg:p-8 space-y-6">
-          {activeTab === "search" && (
-            <div className="animate-fade-in">
-              <div className="mb-6">
+      <div className="p-4 lg:p-8 space-y-6 mobile-safe-bottom">
+        {activeTab === "search" && (
+          <div className="animate-float-up">
+            <div className="mb-6">
+              <div className="relative">
                 <input
                   type="text"
                   placeholder="Search songs or artists..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-muted border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full p-4 pl-12 rounded-2xl glass-card border border-gray-200/50 focus:outline-none focus:ring-2 focus:ring-primary mobile-transition text-base"
                 />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               </div>
-              {searchQuery && (
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">Search Results</h3>
-                  {searchResults.map((song, index) => (
-                    <Card key={index} className="p-3 hover:bg-accent/10 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => playSong(song)}>
-                          <div className="w-12 h-12 rounded overflow-hidden">
-                            <img
-                              src={song.artwork || "/placeholder.svg"}
-                              alt={song.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-medium">{song.title}</p>
-                            <p className="text-sm text-muted-foreground">{song.artist}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => toggleWishlist(song)}
-                            className={isInWishlist(song) ? "text-red-500" : ""}
-                          >
-                            <Heart className="h-4 w-4" fill={isInWishlist(song) ? "currentColor" : "none"} />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => playSong(song)}>
-                            <Play className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
             </div>
-          )}
-
-          {activeTab === "library" && (
-            <div className="animate-fade-in">
-              <h2 className="text-xl font-semibold mb-4">Your Library</h2>
-              {wishlist.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <Heart className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">No songs in your library yet</p>
-                  <p className="text-sm text-muted-foreground mt-2">Add songs to your wishlist to see them here</p>
-                </Card>
-              ) : (
-                <div className="space-y-2">
-                  {wishlist.map((song, index) => (
-                    <Card key={index} className="p-3 hover:bg-accent/10 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => playSong(song)}>
-                          <div className="w-12 h-12 rounded overflow-hidden">
-                            <img
-                              src={song.artwork || "/placeholder.svg"}
-                              alt={song.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-medium">{song.title}</p>
-                            <p className="text-sm text-muted-foreground">{song.artist}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => toggleWishlist(song)}
-                            className="text-red-500"
-                          >
-                            <Heart className="h-4 w-4" fill="currentColor" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => playSong(song)}>
-                            <Play className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === "home" && !selectedArtist && (
-            <>
-              <section className="animate-fade-in">
-                <h2 className="text-xl font-semibold mb-4">Recently Played</h2>
-                <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                  {allSongs.slice(0, 6).map((song, index) => (
-                    <Card
-                      key={index}
-                      className="p-4 cursor-pointer hover:bg-accent/10 transition-all duration-200 hover:scale-105"
-                      onClick={() => playSong(song)}
-                    >
-                      <div className="aspect-square rounded-lg mb-3 overflow-hidden">
-                        <img
-                          src={song.artwork || "/placeholder.svg"}
-                          alt={song.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <h3 className="font-medium text-sm text-balance">{song.title}</h3>
-                      <p className="text-xs text-muted-foreground">{song.artist}</p>
-                    </Card>
-                  ))}
-                </div>
-              </section>
-
-              <section className="animate-fade-in">
-                <h2 className="text-xl font-semibold mb-4">Artists</h2>
-                <div className="grid lg:grid-cols-2 gap-4">
-                  {filteredArtists.map((artist, index) => (
-                    <Card key={index} className="p-4">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div
-                          className="w-16 h-16 rounded-full overflow-hidden cursor-pointer hover:scale-105 transition-transform"
-                          onClick={() => setSelectedArtist(artist.name)}
-                        >
+            {searchQuery && (
+              <div className="space-y-3">
+                <h3 className="mobile-title">Search Results</h3>
+                {searchResults.map((song, index) => (
+                  <Card key={index} className="mobile-music-card">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 cursor-pointer flex-1" onClick={() => playSong(song)}>
+                        <div className="w-14 h-14 rounded-xl overflow-hidden album-art-glow">
                           <img
-                            src={artist.artwork || "/placeholder.svg"}
-                            alt={artist.name}
+                            src={song.artwork || "/placeholder.svg"}
+                            alt={song.title}
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <div>
-                          <h3
-                            className="font-semibold text-lg cursor-pointer hover:text-primary transition-colors"
-                            onClick={() => setSelectedArtist(artist.name)}
-                          >
-                            {artist.name}
-                          </h3>
-                          <p className="text-muted-foreground">
-                            {artist.songs.length} songs • {artist.genre}
-                          </p>
+                        <div className="flex-1 min-w-0">
+                          <p className="mobile-title truncate">{song.title}</p>
+                          <p className="mobile-subtitle truncate">{song.artist}</p>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        {artist.songs.map((song, songIndex) => (
-                          <div
-                            key={songIndex}
-                            className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                            onClick={() =>
-                              playSong({
-                                ...song,
-                                artist: artist.name,
-                                artwork: song.artwork || artist.artwork,
-                              })
-                            }
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded overflow-hidden">
-                                <img
-                                  src={song.artwork || artist.artwork}
-                                  alt={song.title}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              <div>
-                                <p className="font-medium text-sm">{song.title}</p>
-                                <p className="text-xs text-muted-foreground">{song.duration}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  toggleWishlist({
-                                    ...song,
-                                    artist: artist.name,
-                                    artwork: song.artwork || artist.artwork,
-                                  })
-                                }}
-                              >
-                                <Heart
-                                  className="h-4 w-4"
-                                  fill={
-                                    isInWishlist({
-                                      ...song,
-                                      artist: artist.name,
-                                      artwork: song.artwork || artist.artwork,
-                                    })
-                                      ? "currentColor"
-                                      : "none"
-                                  }
-                                />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Play className="h-4 w-4" />
-                              </Button>
-                            </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => toggleWishlist(song.id || "")}
+                          className={`mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] ${isInWishlist(song.id || "") ? "text-red-500" : ""}`}
+                        >
+                          <Heart className="h-5 w-5" fill={isInWishlist(song.id || "") ? "currentColor" : "none"} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => playSong(song)}
+                          className="mobile-control-btn primary min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px]"
+                        >
+                          <Play className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "library" && (
+          <div className="animate-float-up">
+            <h2 className="mobile-title mb-6">Your Library</h2>
+            {wishlist.length === 0 ? (
+              <Card className="mobile-music-card text-center py-12">
+                <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground animate-pulse-ring" />
+                <p className="mobile-title text-muted-foreground mb-2">No songs in your library yet</p>
+                <p className="mobile-caption">Add songs to your wishlist to see them here</p>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {wishlist.map((songId) => {
+                  const song = allSongs.find((s) => s.id === songId)
+                  if (!song) return null
+                  return (
+                    <Card key={songId} className="mobile-music-card">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 cursor-pointer flex-1" onClick={() => playSong(song)}>
+                          <div className="w-14 h-14 rounded-xl overflow-hidden album-art-glow">
+                            <img
+                              src={song.artwork || "/placeholder.svg"}
+                              alt={song.title}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
-                        ))}
+                          <div className="flex-1 min-w-0">
+                            <p className="mobile-title truncate">{song.title}</p>
+                            <p className="mobile-subtitle truncate">{song.artist}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => toggleWishlist(songId)}
+                            className="mobile-control-btn text-red-500 min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] touch-target"
+                          >
+                            <Heart className="h-5 w-5" fill="currentColor" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => playSong(song)}
+                            className="mobile-control-btn primary min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] touch-target"
+                          >
+                            <Play className="h-5 w-5" />
+                          </Button>
+                        </div>
                       </div>
                     </Card>
-                  ))}
-                </div>
-              </section>
-            </>
-          )}
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
-          {selectedArtist && (
-            <div className="animate-fade-in">
-              <Button variant="ghost" onClick={() => setSelectedArtist(null)} className="mb-4">
-                ← Back to Artists
-              </Button>
-              {(() => {
-                const artist = mockArtists.find((a) => a.name === selectedArtist)
-                if (!artist) return null
+        {activeTab === "home" && !selectedArtist && (
+          <>
+            <section className="animate-float-up">
+              <h2 className="mobile-title mb-4">Recently Played</h2>
+              <div className="mobile-grid">
+                {allSongs.slice(0, 6).map((song, index) => (
+                  <Card key={index} className="mobile-music-card cursor-pointer" onClick={() => playSong(song)}>
+                    <div className="aspect-square rounded-xl mb-3 overflow-hidden album-art-glow">
+                      <img
+                        src={song.artwork || "/placeholder.svg"}
+                        alt={song.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <h3 className="mobile-title text-balance">{song.title}</h3>
+                    <p className="mobile-subtitle">{song.artist}</p>
+                  </Card>
+                ))}
+              </div>
+            </section>
 
-                return (
-                  <div>
-                    <div className="flex items-center gap-6 mb-6">
-                      <div className="w-32 h-32 rounded-full overflow-hidden">
+            <section className="animate-float-up">
+              <h2 className="mobile-title mb-4">Artists</h2>
+              <div className="space-y-4">
+                {filteredArtists.map((artist, index) => (
+                  <Card key={index} className="mobile-music-card">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div
+                        className="w-16 h-16 rounded-full overflow-hidden cursor-pointer mobile-transition album-art-glow"
+                        onClick={() => setSelectedArtist(artist.name)}
+                      >
                         <img
                           src={artist.artwork || "/placeholder.svg"}
                           alt={artist.name}
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <div>
-                        <h1 className="text-3xl font-bold mb-2">{artist.name}</h1>
-                        <p className="text-muted-foreground text-lg">
+                      <div className="flex-1">
+                        <h3
+                          className="mobile-title cursor-pointer mobile-transition hover:text-primary"
+                          onClick={() => setSelectedArtist(artist.name)}
+                        >
+                          {artist.name}
+                        </h3>
+                        <p className="mobile-subtitle">
                           {artist.songs.length} songs • {artist.genre}
                         </p>
                       </div>
                     </div>
+                    <div className="space-y-2">
+                      {artist.songs.map((song, songIndex) => (
+                        <div
+                          key={songIndex}
+                          className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 cursor-pointer mobile-transition"
+                          onClick={() =>
+                            playSong({
+                              ...song,
+                              artist: artist.name,
+                              artwork: song.artwork || artist.artwork,
+                              id: `${artist.name}-${song.title}`,
+                              image: song.artwork || artist.artwork,
+                            })
+                          }
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="w-12 h-12 rounded-lg overflow-hidden">
+                              <img
+                                src={song.artwork || artist.artwork}
+                                alt={song.title}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm truncate">{song.title}</p>
+                              <p className="mobile-caption truncate">{song.duration}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 mobile-control-btn"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                toggleWishlist(`${artist.name}-${song.title}`)
+                              }}
+                            >
+                              <Heart
+                                className="h-4 w-4"
+                                fill={isInWishlist(`${artist.name}-${song.title}`) ? "currentColor" : "none"}
+                              />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 mobile-control-btn">
+                              <Play className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
 
-                    <div className="space-y-3">
-                      {artist.songs.map((song, index) => (
-                        <Card key={index} className="p-4 hover:bg-accent/10 transition-colors">
-                          <div className="flex items-center justify-between">
-                            <div
-                              className="flex items-center gap-4 cursor-pointer flex-1"
+        {selectedArtist && (
+          <div className="animate-fade-in">
+            <Button variant="ghost" onClick={() => setSelectedArtist(null)} className="mb-4">
+              ← Back to Artists
+            </Button>
+            {(() => {
+              const artist = mockArtists.find((a) => a.name === selectedArtist)
+              if (!artist) return null
+
+              return (
+                <div>
+                  <div className="flex items-center gap-6 mb-6">
+                    <div className="w-32 h-32 rounded-full overflow-hidden">
+                      <img
+                        src={artist.artwork || "/placeholder.svg"}
+                        alt={artist.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <h1 className="text-3xl font-bold mb-2">{artist.name}</h1>
+                      <p className="text-muted-foreground text-lg">
+                        {artist.songs.length} songs • {artist.genre}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {artist.songs.map((song, index) => (
+                      <Card key={index} className="p-4 hover:bg-accent/10 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div
+                            className="flex items-center gap-4 cursor-pointer flex-1"
+                            onClick={() =>
+                              playSong({
+                                ...song,
+                                artist: artist.name,
+                                artwork: song.artwork || artist.artwork,
+                                id: `${artist.name}-${song.title}`,
+                                image: song.artwork || artist.artwork,
+                              })
+                            }
+                          >
+                            <div className="w-16 h-16 rounded overflow-hidden">
+                              <img
+                                src={song.artwork || artist.artwork}
+                                alt={song.title}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg">{song.title}</h3>
+                              <p className="text-muted-foreground">{song.duration}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => toggleWishlist(`${artist.name}-${song.title}`)}
+                            >
+                              <Heart
+                                className="h-5 w-5"
+                                fill={isInWishlist(`${artist.name}-${song.title}`) ? "currentColor" : "none"}
+                              />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() =>
                                 playSong({
                                   ...song,
                                   artist: artist.name,
                                   artwork: song.artwork || artist.artwork,
+                                  id: `${artist.name}-${song.title}`,
+                                  image: song.artwork || artist.artwork,
                                 })
                               }
                             >
-                              <div className="w-16 h-16 rounded overflow-hidden">
-                                <img
-                                  src={song.artwork || artist.artwork}
-                                  alt={song.title}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              <div>
-                                <h3 className="font-semibold text-lg">{song.title}</h3>
-                                <p className="text-muted-foreground">{song.duration}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() =>
-                                  toggleWishlist({
-                                    ...song,
-                                    artist: artist.name,
-                                    artwork: song.artwork || artist.artwork,
-                                  })
-                                }
-                              >
-                                <Heart
-                                  className="h-5 w-5"
-                                  fill={
-                                    isInWishlist({
-                                      ...song,
-                                      artist: artist.name,
-                                      artwork: song.artwork || artist.artwork,
-                                    })
-                                      ? "currentColor"
-                                      : "none"
-                                  }
-                                />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() =>
-                                  playSong({
-                                    ...song,
-                                    artist: artist.name,
-                                    artwork: song.artwork || artist.artwork,
-                                  })
-                                }
-                              >
-                                <Play className="h-5 w-5" />
-                              </Button>
-                            </div>
+                              <Play className="h-5 w-5" />
+                            </Button>
                           </div>
-                        </Card>
-                      ))}
-                    </div>
+                        </div>
+                      </Card>
+                    ))}
                   </div>
-                )
-              })()}
-            </div>
-          )}
-        </div>
+                </div>
+              )
+            })()}
+          </div>
+        )}
       </div>
+
       {currentSong && !showPlayer && (
         <div
-          className="fixed bottom-20 left-4 right-4 bg-card border border-border rounded-lg p-3 cursor-pointer animate-slide-up"
+          className="fixed bottom-20 left-4 right-4 glass-card rounded-2xl p-4 cursor-pointer player-slide-up mobile-safe-bottom"
           onClick={() => setShowPlayer(true)}
         >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded overflow-hidden">
+            <div className="w-12 h-12 rounded-xl overflow-hidden album-art-glow">
               <img
-                src={currentSong.artwork || "/abstract-soundscape.png"}
+                src={currentSong.image || "/abstract-soundscape.png"}
                 alt={currentSong.title}
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">{currentSong.title}</p>
-              <p className="text-xs text-muted-foreground truncate">{currentSong.artist}</p>
+              <p className="font-semibold text-sm truncate">{currentSong.title}</p>
+              <p className="mobile-caption truncate">{currentSong.artist}</p>
             </div>
             <div className="flex-1 mx-3">
               <input
@@ -792,16 +784,17 @@ export default function MusicStreamApp() {
                 min="0"
                 max="100"
                 value={duration ? (currentTime / duration) * 100 : 0}
-                onChange={(e) => seekTo([Number.parseInt(e.target.value)])}
-                className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer slider-thumb"
+                onChange={(e) => seekTo(Number.parseInt(e.target.value))}
+                className="w-full mobile-range-input-mini"
                 onClick={(e) => e.stopPropagation()}
+                style={{ "--progress": `${duration ? (currentTime / duration) * 100 : 0}%` } as React.CSSProperties}
               />
             </div>
-            <div className="flex items-center gap-1">
+            <div className="mobile-player-controls">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
+                className="h-8 w-8 mobile-control-btn"
                 onClick={(e) => {
                   e.stopPropagation()
                   playPrevious()
@@ -812,7 +805,7 @@ export default function MusicStreamApp() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10"
+                className="h-10 w-10 mobile-control-btn primary"
                 onClick={(e) => {
                   e.stopPropagation()
                   togglePlayPause()
@@ -823,7 +816,7 @@ export default function MusicStreamApp() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
+                className="h-8 w-8 mobile-control-btn"
                 onClick={(e) => {
                   e.stopPropagation()
                   playNext()
@@ -835,34 +828,42 @@ export default function MusicStreamApp() {
           </div>
         </div>
       )}
+
       {showPlayer && currentSong && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div
             ref={playerRef}
-            className="bg-card border border-border rounded-lg w-full max-w-md animate-slide-up shadow-2xl"
+            className="glass-card rounded-3xl w-full max-w-md player-slide-up shadow-2xl overflow-hidden"
           >
-            <div className="p-4 lg:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Button variant="ghost" size="icon" onClick={() => setShowPlayer(false)}>
-                  <X className="h-5 w-5" />
-                </Button>
-                <h3 className="font-medium">Now Playing</h3>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => toggleWishlist(currentSong)}
-                  className={isInWishlist(currentSong) ? "text-red-500" : ""}
+                  onClick={() => setShowPlayer(false)}
+                  className="mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] touch-target"
                 >
-                  <Heart className="h-5 w-5" fill={isInWishlist(currentSong) ? "currentColor" : "none"} />
+                  <X className="h-5 w-5" />
+                </Button>
+                <h3 className="font-semibold">Now Playing</h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => toggleWishlist(currentSong.id || "")}
+                  className={`mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] touch-target ${isInWishlist(currentSong.id || "") ? "text-red-500" : ""}`}
+                >
+                  <Heart className={`h-5 w-5 ${isInWishlist(currentSong.id || "") ? "fill-current" : ""}`} />
                 </Button>
               </div>
 
               <div
-                className={`flex justify-center mb-6 transition-all duration-500 ${showLyrics ? "transform -translate-y-8 scale-90" : ""}`}
+                className={`flex justify-center mb-6 mobile-transition-slow ${
+                  showLyrics ? "transform -translate-y-4 scale-90" : ""
+                }`}
               >
-                <div className="w-64 h-64 lg:w-80 lg:h-80 rounded-lg overflow-hidden animate-pulse-glow">
+                <div className="w-72 h-72 rounded-2xl overflow-hidden album-art-glow animate-pulse-ring">
                   <img
-                    src={currentSong.artwork || "/placeholder.svg"}
+                    src={currentSong.image || "/placeholder.svg"}
                     alt={currentSong.title}
                     className="w-full h-full object-cover"
                   />
@@ -870,8 +871,8 @@ export default function MusicStreamApp() {
               </div>
 
               <div className="text-center mb-6">
-                <h2 className="text-xl lg:text-2xl font-bold text-balance mb-1">{currentSong.title}</h2>
-                <p className="text-muted-foreground lg:text-lg">{currentSong.artist}</p>
+                <h2 className="text-xl font-bold text-balance mb-2">{currentSong.title}</h2>
+                <p className="mobile-subtitle">{currentSong.artist}</p>
               </div>
 
               <div className="mb-6">
@@ -880,76 +881,89 @@ export default function MusicStreamApp() {
                   min="0"
                   max="100"
                   value={duration ? (currentTime / duration) * 100 : 0}
-                  onChange={(e) => seekTo([Number.parseInt(e.target.value)])}
-                  className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer slider-thumb mb-2"
+                  onChange={(e) => seekTo(Number.parseInt(e.target.value))}
+                  className="w-full mb-3 mobile-range-input"
+                  style={{ "--progress": `${duration ? (currentTime / duration) * 100 : 0}%` } as React.CSSProperties}
                 />
-                <div className="flex justify-between text-xs lg:text-sm text-muted-foreground">
+                <div className="flex justify-between mobile-caption">
                   <span>{formatTime(currentTime)}</span>
                   <span>{formatTime(duration)}</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-center gap-6 mb-6">
+              <div className="mobile-player-controls mb-6">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsShuffle(!isShuffle)}
-                  className={isShuffle ? "text-primary" : ""}
+                  className={`mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] touch-target ${isShuffle ? "text-primary" : ""}`}
                 >
                   <Shuffle className="h-5 w-5" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={playPrevious}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={playPrevious}
+                  className="mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] touch-target"
+                >
                   <SkipBack className="h-6 w-6" />
                 </Button>
-                <Button size="icon" className="h-14 w-14 bg-primary hover:bg-primary/90" onClick={togglePlayPause}>
-                  {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+                <Button
+                  size="icon"
+                  className="h-16 w-16 mobile-control-btn primary touch-target"
+                  onClick={togglePlayPause}
+                >
+                  {isPlaying ? <Pause className="h-7 w-7" /> : <Play className="h-7 w-7" />}
                 </Button>
-                <Button variant="ghost" size="icon" onClick={playNext}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={playNext}
+                  className="mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] touch-target"
+                >
                   <SkipForward className="h-6 w-6" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsRepeat(!isRepeat)}
-                  className={isRepeat ? "text-primary" : ""}
+                  className={`mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] touch-target ${isRepeat ? "text-primary" : ""}`}
                 >
                   <Repeat className="h-5 w-5" />
                 </Button>
               </div>
 
-              <div className="flex justify-center gap-3 mb-4">
+              <div className="flex justify-center mb-4">
                 <Button
                   variant={showLyrics ? "default" : "outline"}
                   onClick={toggleLyrics}
-                  className={`px-8 py-3 font-medium text-base transition-all duration-300 ${
+                  className={`px-8 py-3 font-semibold rounded-2xl mobile-transition ${
                     showLyrics
-                      ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg scale-105 ring-2 ring-primary/30"
-                      : "bg-gradient-to-r from-primary/20 to-primary/10 hover:from-primary/30 hover:to-primary/20 border-primary text-primary border-2 hover:scale-105"
+                      ? "premium-button text-primary-foreground"
+                      : "mobile-control-btn border-primary text-primary"
                   }`}
                 >
-                  {showLyrics ? "Hide Lyrics" : "Show Lyrics"}
+                  {showLyrics ? "Show Album Art" : "Show Lyrics"}
                 </Button>
               </div>
 
               {showLyrics && (
-                <div className={`mt-4 transition-all duration-500 ${lyricsAnimating ? "animate-slide-down" : ""}`}>
-                  <div className="p-6 bg-gradient-to-br from-muted/90 to-muted/70 rounded-xl max-h-48 lg:max-h-72 overflow-y-auto border-2 border-primary/30 shadow-inner backdrop-blur-sm">
-                    <div className="text-base lg:text-lg whitespace-pre-wrap text-center leading-relaxed">
+                <div className="animate-float-up">
+                  <div className="glass-card rounded-2xl p-4 lyrics-mobile">
+                    <div className="text-center leading-relaxed">
                       {currentSong.lyrics ? (
                         currentSong.lyrics.split("\n").map((line, index) => (
                           <div
                             key={index}
-                            className={`transition-all duration-300 py-1 ${
-                              index === currentLyricLine
-                                ? "text-primary font-bold scale-105 bg-primary/10 rounded px-2"
-                                : "text-foreground/80"
+                            className={`lyrics-line ${
+                              index === currentLyricLine ? "active" : index < currentLyricLine ? "past" : "upcoming"
                             }`}
                           >
                             {line || "\u00A0"}
                           </div>
                         ))
                       ) : (
-                        <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                        <div className="flex items-center justify-center gap-2 text-muted-foreground py-8">
                           <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
                           Loading lyrics...
                         </div>
@@ -958,38 +972,209 @@ export default function MusicStreamApp() {
                   </div>
                 </div>
               )}
+
+              <div className="flex items-center gap-3">
+                <Volume2 className="h-5 w-5 text-gray-400" />
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={volume}
+                  onChange={(e) => setVolume(Number.parseInt(e.target.value))}
+                  className="flex-1 mobile-range-input"
+                />
+              </div>
             </div>
           </div>
         </div>
       )}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border">
-        <div className="flex items-center justify-around p-4">
+
+      {expandedPlayer && (
+        <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-50 flex flex-col">
+          <div className="flex-1 flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setExpandedPlayer(false)}
+                className="text-white hover:bg-white/10 min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px]"
+              >
+                <ChevronDown className="h-6 w-6" />
+              </Button>
+              <h3 className="text-lg font-semibold text-white">Now Playing</h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => toggleWishlist(currentSong.id || "")}
+                className={`min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] ${
+                  wishlist.includes(currentSong.id || "") ? "text-red-500" : "text-white hover:bg-white/10"
+                }`}
+              >
+                <Heart className={`h-6 w-6 ${wishlist.includes(currentSong.id || "") ? "fill-current" : ""}`} />
+              </Button>
+            </div>
+
+            <div className="flex-1 flex flex-col items-center justify-center p-8">
+              {showLyrics ? (
+                <div className="w-full max-w-md animate-float-up">
+                  <div className="glass-card rounded-2xl p-6 lyrics-mobile max-h-[400px] overflow-y-auto">
+                    <div className="text-center leading-relaxed">
+                      {currentSong.lyrics ? (
+                        currentSong.lyrics.split("\n").map((line, index) => (
+                          <div
+                            key={index}
+                            className={`lyrics-line ${
+                              index === currentLyricLine ? "active" : index < currentLyricLine ? "past" : "upcoming"
+                            }`}
+                          >
+                            {line || "\u00A0"}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="flex items-center justify-center gap-2 text-muted-foreground py-8">
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                          Loading lyrics...
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full max-w-sm mb-8 animate-float-up">
+                  <div className="aspect-square rounded-3xl overflow-hidden shadow-2xl ring-4 ring-white/20">
+                    <img
+                      src={currentSong.image || "/placeholder.svg"}
+                      alt={currentSong.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="w-full max-w-md text-center mb-8">
+                <h2 className="text-2xl font-bold text-white mb-2">{currentSong.title}</h2>
+                <p className="text-lg text-gray-300">{currentSong.artist}</p>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="space-y-2">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={duration ? (currentTime / duration) * 100 : 0}
+                  onChange={(e) => seekTo(Number.parseInt(e.target.value))}
+                  className="w-full mobile-range-input"
+                  style={{ "--progress": `${duration ? (currentTime / duration) * 100 : 0}%` } as React.CSSProperties}
+                />
+                <div className="flex justify-between text-sm text-gray-400">
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{formatTime(duration)}</span>
+                </div>
+              </div>
+
+              <div className="mobile-player-controls mb-6">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsShuffle(!isShuffle)}
+                  className={`mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] ${isShuffle ? "text-primary" : ""}`}
+                >
+                  <Shuffle className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={playPrevious}
+                  className="mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px]"
+                >
+                  <SkipBack className="h-6 w-6" />
+                </Button>
+                <Button size="icon" className="h-16 w-16 mobile-control-btn primary" onClick={togglePlayPause}>
+                  {isPlaying ? <Pause className="h-7 w-7" /> : <Play className="h-7 w-7" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={playNext}
+                  className="mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px]"
+                >
+                  <SkipForward className="h-6 w-6" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsRepeat(!isRepeat)}
+                  className={`mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] ${isRepeat ? "text-primary" : ""}`}
+                >
+                  <Repeat className="h-5 w-5" />
+                </Button>
+              </div>
+
+              <div className="flex justify-center mb-4">
+                <Button
+                  variant={showLyrics ? "default" : "outline"}
+                  onClick={toggleLyrics}
+                  className={`px-8 py-3 font-semibold rounded-2xl mobile-transition ${
+                    showLyrics
+                      ? "premium-button text-primary-foreground"
+                      : "mobile-control-btn border-primary text-primary"
+                  }`}
+                >
+                  {showLyrics ? "Show Album Art" : "Show Lyrics"}
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Volume2 className="h-5 w-5 text-gray-400" />
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={volume}
+                  onChange={(e) => setVolume(Number.parseInt(e.target.value))}
+                  className="flex-1 mobile-range-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="fixed bottom-0 left-0 right-0 mobile-nav mobile-safe-bottom">
+        <div className="flex items-center justify-around p-4 relative">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setActiveTab("home")}
-            className={activeTab === "home" ? "text-primary" : ""}
+            className={`mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] relative touch-target ${activeTab === "home" ? "text-primary" : ""}`}
           >
-            <Home className="h-5 w-5" />
+            <Home className="h-6 w-6" />
+            {activeTab === "home" && <div className="nav-indicator" />}
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setActiveTab("search")}
-            className={activeTab === "search" ? "text-primary" : ""}
+            className={`mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] relative touch-target ${activeTab === "search" ? "text-primary" : ""}`}
           >
-            <Search className="h-5 w-5" />
+            <Search className="h-6 w-6" />
+            {activeTab === "search" && <div className="nav-indicator" />}
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setActiveTab("library")}
-            className={activeTab === "library" ? "text-primary" : ""}
+            className={`mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] relative touch-target ${activeTab === "library" ? "text-primary" : ""}`}
           >
-            <Library className="h-5 w-5" />
+            <Library className="h-6 w-6" />
+            {activeTab === "library" && <div className="nav-indicator" />}
           </Button>
         </div>
       </div>
+
+      <audio ref={audioRef} preload="metadata" />
     </div>
   )
 }
