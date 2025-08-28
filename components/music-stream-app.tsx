@@ -21,6 +21,21 @@ import {
 } from "lucide-react"
 
 const mockArtists = [
+    {
+    name: "The Weeknd",
+    genre: "Pop",
+    artwork: "/the-weeknd-album-cover-dark-moody.png",
+    songs: [
+      {
+        title: "i love you",
+        duration: "4:51",
+        file: "/music/billieelilish/iloveyou.mp3", // Using the real MP3 file provided by user
+        lyricsFile: "/music/billieelilish/iloveyou.txt",
+        artwork: "/music/billieelilish/iloveyou.png",
+      },
+     
+    ],
+  },
   {
     name: "The Weeknd",
     genre: "Pop",
