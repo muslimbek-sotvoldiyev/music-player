@@ -25,7 +25,7 @@ import {
 } from "lucide-react"
 
 const mockArtists = [
-    {
+  {
     name: "Billie Eilish",
     genre: "Pop",
     artwork: "/the-weeknd-album-cover-dark-moody.png",
@@ -37,7 +37,6 @@ const mockArtists = [
         lyricsFile: "/music/billieelilish/iloveyou.txt",
         artwork: "/music/billieelilish/iloveyou.png",
       },
-     
     ],
   },
   {
@@ -101,6 +100,117 @@ interface Song {
   lyrics?: string
   id?: string
   image?: string
+}
+
+const ParticleBackground = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const animationRef = useRef<number>()
+  const particlesRef = useRef<
+    Array<{
+      x: number
+      y: number
+      vx: number
+      vy: number
+      size: number
+      opacity: number
+      color: string
+      pulse: number
+    }>
+  >([])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
+
+    resizeCanvas()
+    window.addEventListener("resize", resizeCanvas)
+
+    // Initialize particles with music-themed colors
+    const colors = ["#8B5CF6", "#06B6D4", "#10B981", "#F59E0B", "#EF4444"]
+    particlesRef.current = Array.from({ length: 80 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      size: Math.random() * 3 + 1,
+      opacity: Math.random() * 0.6 + 0.2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      pulse: Math.random() * Math.PI * 2,
+    }))
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      particlesRef.current.forEach((particle, index) => {
+        // Update position
+        particle.x += particle.vx
+        particle.y += particle.vy
+        particle.pulse += 0.02
+
+        // Bounce off edges
+        if (particle.x <= 0 || particle.x >= canvas.width) particle.vx *= -1
+        if (particle.y <= 0 || particle.y >= canvas.height) particle.vy *= -1
+
+        // Pulsing effect
+        const pulseFactor = Math.sin(particle.pulse) * 0.3 + 0.7
+        const currentSize = particle.size * pulseFactor
+        const currentOpacity = particle.opacity * pulseFactor
+
+        // Draw particle with glow effect
+        ctx.save()
+        ctx.globalAlpha = currentOpacity
+        ctx.fillStyle = particle.color
+        ctx.shadowColor = particle.color
+        ctx.shadowBlur = 10
+        ctx.beginPath()
+        ctx.arc(particle.x, particle.y, currentSize, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.restore()
+
+        // Connect nearby particles
+        particlesRef.current.slice(index + 1).forEach((otherParticle) => {
+          const dx = particle.x - otherParticle.x
+          const dy = particle.y - otherParticle.y
+          const distance = Math.sqrt(dx * dx + dy * dy)
+
+          if (distance < 100) {
+            ctx.save()
+            ctx.globalAlpha = (1 - distance / 100) * 0.2
+            ctx.strokeStyle = particle.color
+            ctx.lineWidth = 0.5
+            ctx.beginPath()
+            ctx.moveTo(particle.x, particle.y)
+            ctx.lineTo(otherParticle.x, otherParticle.y)
+            ctx.stroke()
+            ctx.restore()
+          }
+        })
+      })
+
+      animationRef.current = requestAnimationFrame(animate)
+    }
+
+    animate()
+
+    return () => {
+      window.removeEventListener("resize", resizeCanvas)
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [])
+
+  return (
+    <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" style={{ background: "transparent" }} />
+  )
 }
 
 export default function MusicStreamApp() {
@@ -391,17 +501,21 @@ export default function MusicStreamApp() {
 
   return (
     <div className="min-h-screen dynamic-bg text-foreground relative overflow-hidden mobile-safe-area">
-      <div className="sticky top-0 z-20 glass-card border-b border-gray-200/50">
+      <ParticleBackground />
+
+      <div className="fixed inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-cyan-500/5 pointer-events-none z-1" />
+
+      <div className="sticky top-0 z-20 glass-card border-b border-gray-200/50 backdrop-blur-xl">
         <div className="flex items-center justify-between p-4 lg:px-8">
-          <h1 className="text-2xl lg:text-3xl font-black bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient-wave">
-            MusicStream
+          <h1 className="text-2xl lg:text-3xl font-black bg-gradient-to-r from-purple-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent animate-gradient-wave drop-shadow-sm">
+            🎵 MusicStream
           </h1>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsDarkMode(!isDarkMode)}
-              className="mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px]"
+              className="mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] hover:bg-white/10 transition-all duration-300"
             >
               {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
@@ -409,7 +523,7 @@ export default function MusicStreamApp() {
               variant="ghost"
               size="icon"
               onClick={() => setShowFilters(!showFilters)}
-              className="mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px]"
+              className="mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] hover:bg-white/10 transition-all duration-300"
             >
               <Filter className="h-5 w-5" />
             </Button>
@@ -417,32 +531,12 @@ export default function MusicStreamApp() {
               variant="ghost"
               size="icon"
               onClick={() => setActiveTab("search")}
-              className="mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px]"
+              className="mobile-control-btn min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px] hover:bg-white/10 transition-all duration-300"
             >
               <Search className="h-5 w-5" />
             </Button>
           </div>
         </div>
-
-        {showFilters && (
-          <div className="px-4 lg:px-8 pb-4 animate-float-up">
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {genres.map((genre) => (
-                <Button
-                  key={genre}
-                  variant={selectedGenre === genre ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedGenre(genre)}
-                  className={`whitespace-nowrap mobile-transition ${
-                    selectedGenre === genre ? "premium-button text-primary-foreground" : "mobile-control-btn"
-                  }`}
-                >
-                  {genre}
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="p-4 lg:p-8 space-y-6 mobile-safe-bottom">
