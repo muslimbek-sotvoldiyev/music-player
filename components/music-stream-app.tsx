@@ -207,27 +207,7 @@ const mockArtists = [
     }
   ]
   },
-  {
-    name: "Dua Lipa",
-    genre: "Pop",
-    artwork: "/dua-lipa-colorful-pop-album-cover.png",
-    songs: [
-      {
-        title: "Levitating",
-        duration: "3:23",
-        file: "/music/dualipa/levitating.mp3",
-        lyricsFile: "/music/dualipa/levitating.txt",
-        artwork: "/levitating-disco-ball-space.png",
-      },
-      {
-        title: "Don't Start Now",
-        duration: "3:03",
-        file: "/music/dualipa/dont-start-now.mp3",
-        lyricsFile: "/music/dualipa/dont-start-now.txt",
-        artwork: "/don-t-start-now-retro-disco.png",
-      },
-    ],
-  },
+ 
 ]
 
 interface Song {
