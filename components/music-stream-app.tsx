@@ -51,20 +51,8 @@ const mockArtists = [
         lyricsFile: "/music/theweeknd/timeless.txt",
         artwork: "/the-weeknd-album-cover-dark-moody.png",
       },
-      {
-        title: "Blinding Lights",
-        duration: "3:20",
-        file: "/music/theweeknd/blinding-lights.mp3",
-        lyricsFile: "/music/theweeknd/blinding-lights.txt",
-        artwork: "/blinding-lights-neon-city-lights.png",
-      },
-      {
-        title: "Save Your Tears",
-        duration: "3:35",
-        file: "/music/theweeknd/save-your-tears.mp3",
-        lyricsFile: "/music/theweeknd/save-your-tears.txt",
-        artwork: "/save-your-tears-emotional-dark.png",
-      },
+     
+   
     ],
   },
     {
