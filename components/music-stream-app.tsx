@@ -26,6 +26,48 @@ import {
 
 const mockArtists = [
   {
+    name: "Billie Eilish",
+    genre: "Pop",
+    artwork: "/the-weeknd-album-cover-dark-moody.png",
+    songs: [
+      {
+        title: "i love you",
+        duration: "4:51",
+        file: "/music/billieelilish/iloveyou.mp3", // Using the real MP3 file provided by user
+        lyricsFile: "/music/billieelilish/iloveyou.txt",
+        artwork: "/music/billieelilish/iloveyou.png",
+      },
+    ],
+  },
+  {
+    name: "The Weeknd",
+    genre: "Pop",
+    artwork: "/the-weeknd-album-cover-dark-moody.png",
+    songs: [
+      {
+        title: "Timeless",
+        duration: "4:15",
+        file: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/The%20Weeknd%2C%20Playboi%20Carti%20-%20Timeless-vTbHhFDDwlFBsxaOnC3jivYOTpVwew.mp3", // Using the real MP3 file provided by user
+        lyricsFile: "/music/theweeknd/timeless.txt",
+        artwork: "/the-weeknd-album-cover-dark-moody.png",
+      },
+      {
+        title: "Blinding Lights",
+        duration: "3:20",
+        file: "/music/theweeknd/blinding-lights.mp3",
+        lyricsFile: "/music/theweeknd/blinding-lights.txt",
+        artwork: "/blinding-lights-neon-city-lights.png",
+      },
+      {
+        title: "Save Your Tears",
+        duration: "3:35",
+        file: "/music/theweeknd/save-your-tears.mp3",
+        lyricsFile: "/music/theweeknd/save-your-tears.txt",
+        artwork: "/save-your-tears-emotional-dark.png",
+      },
+    ],
+  },
+    {
   name: "Shokir",
   genre: "Pop",
   artwork: "/music/shokir/shokir.png",
@@ -164,49 +206,6 @@ const mockArtists = [
       duration: "3:00"
     }
   ]
-  },
-
-  {
-    name: "Billie Eilish",
-    genre: "Pop",
-    artwork: "/the-weeknd-album-cover-dark-moody.png",
-    songs: [
-      {
-        title: "i love you",
-        duration: "4:51",
-        file: "/music/billieelilish/iloveyou.mp3", // Using the real MP3 file provided by user
-        lyricsFile: "/music/billieelilish/iloveyou.txt",
-        artwork: "/music/billieelilish/iloveyou.png",
-      },
-    ],
-  },
-  {
-    name: "The Weeknd",
-    genre: "Pop",
-    artwork: "/the-weeknd-album-cover-dark-moody.png",
-    songs: [
-      {
-        title: "Timeless",
-        duration: "4:15",
-        file: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/The%20Weeknd%2C%20Playboi%20Carti%20-%20Timeless-vTbHhFDDwlFBsxaOnC3jivYOTpVwew.mp3", // Using the real MP3 file provided by user
-        lyricsFile: "/music/theweeknd/timeless.txt",
-        artwork: "/the-weeknd-album-cover-dark-moody.png",
-      },
-      {
-        title: "Blinding Lights",
-        duration: "3:20",
-        file: "/music/theweeknd/blinding-lights.mp3",
-        lyricsFile: "/music/theweeknd/blinding-lights.txt",
-        artwork: "/blinding-lights-neon-city-lights.png",
-      },
-      {
-        title: "Save Your Tears",
-        duration: "3:35",
-        file: "/music/theweeknd/save-your-tears.mp3",
-        lyricsFile: "/music/theweeknd/save-your-tears.txt",
-        artwork: "/save-your-tears-emotional-dark.png",
-      },
-    ],
   },
   {
     name: "Dua Lipa",

@@ -9,11 +9,17 @@ export const metadata: Metadata = {
   title: "Music Streaming App",
   description: "Personal music streaming application",
   generator: "v0.app",
+  icons: {
+    icon: "/image.png",
+    shortcut: "/image.png",
+    apple: "/image.png",
+  },
 }
+
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: Readonly<{ 
   children: React.ReactNode
 }>) {
   return (
