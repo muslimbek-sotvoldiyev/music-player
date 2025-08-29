@@ -26,6 +26,147 @@ import {
 
 const mockArtists = [
   {
+  name: "Shokir",
+  genre: "Pop",
+  artwork: "/music/shokir/shokir.png",
+  songs: [
+    {
+      title: "Aura",
+      file: "/music/shokir/Aura.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "1:47"
+    },
+    {
+      title: "Ava",
+      file: "/music/shokir/Ava.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "2:38"
+    },
+    {
+      title: "Aytishlaricha",
+      file: "/music/shokir/Aytishlaricha.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "3:07"
+    },
+    {
+      title: "Baxtlik",
+      file: "/music/shokir/Baxtlik.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "2:30"
+    },
+    {
+      title: "Erkak-kishi",
+      file: "/music/shokir/Erkak-kishi.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "1:57"
+    },
+    {
+      title: "Fayzee-Bor",
+      file: "/music/shokir/Fayzee-Bor.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "2:19"
+    },
+    {
+      title: "Kuz",
+      file: "/music/shokir/Kuz.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "2:40"
+    },
+    {
+      title: "Manipulyator",
+      file: "/music/shokir/Manipulyator.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "3:05"
+    },
+    {
+      title: "Prada",
+      file: "/music/shokir/Prada.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "2:24"
+    },
+    {
+      title: "PXQ",
+      file: "/music/shokir/PXQ.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "2:40"
+    },
+    {
+      title: "Qaro-ko'zlaring",
+      file: "/music/shokir/Qaro-kozlaring.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "2:51"
+    },
+    {
+      title: "Qimilla",
+      file: "/music/shokir/Qimilla.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "2:36"
+    },
+    {
+      title: "Romantika",
+      file: "/music/shokir/Romantika.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "2:40"
+    },
+    {
+      title: "Sarob",
+      file: "/music/shokir/Sarob.m4a",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "3:00"
+    },
+    {
+      title: "Shokir - Feling",
+      file: "/music/shokir/Shokir - Feling.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "2:13"
+    },
+    {
+      title: "Shokir - Kema",
+      file: "/music/shokir/Shokir - Kema.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "3:39"
+    },
+    {
+      title: "Shokir - Notiq",
+      file: "/music/shokir/Shokir - Notiq.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "2:30"
+    },
+    {
+      title: "Shokir - Qand",
+      file: "/music/shokir/Shokir - Qand.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "2:04"
+    },
+    {
+      title: "Yoqolar",
+      file: "/music/shokir/Yoqolar.mp3",
+      lyricsFile: "",
+      artwork: "/music/shokir/shokir.png",
+      duration: "3:00"
+    }
+  ]
+  },
+
+  {
     name: "Billie Eilish",
     genre: "Pop",
     artwork: "/the-weeknd-album-cover-dark-moody.png",
